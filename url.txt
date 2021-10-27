@@ -1,0 +1,3 @@
+https://tvantroys.plil.fr/IMA4/DS/ds_novembre_2019.pdf
+ftp://debian.org/index.html
+http://portail.appllication.polytech-lille.fr/Access/Bd.sql
