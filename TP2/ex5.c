@@ -12,4 +12,10 @@
 int main() {
     char* fichier = malloc(sizeof(char)*10);
     fgets(fichier, 10, stdin);
+    pid_t son = fork();
+
+    if (son == 0) {
+        
+    }
+
 }
