@@ -127,6 +127,7 @@ static char message_3[]="POLYTECH LILLE!";
 
 int rgb_main (void)
 {	
+	sei();
 	char current_message=0;	//Indicates which string we should be displaying
 	char change_message=1;	//Flag to notify firmware we've finished displaying the current message and we need to get the next one
 	char *message='\0';		//Pointer to the string we want to display

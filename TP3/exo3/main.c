@@ -6,8 +6,8 @@
 #include <stdlib.h>
 
 #define PRESCALER	1024
-#define TIME_SLOT	312
-#define NB_TICK		312
+#define TIME_SLOT	3000
+#define NB_TICK		3000
 #define BAUDRATE	103 // UBRR value for 9600
 #define MESSAGE		"bonjour\n"
 
@@ -93,7 +93,7 @@
 struct process {
 	char *nom;
 	int stack_pointer;
-	void (*fonction) (void *);
+	int (*fonction) (void);
 };
 
 
@@ -121,7 +121,6 @@ void send_serial(unsigned char c)
 	UDR0 = c;
 }
 
-
 void init_task_led_red(void)
 {
 	DDRB |= 0x01;
@@ -139,6 +138,7 @@ void init_timer()
 
 int task_led_red(void)
 {
+	sei();
 	while (1) {
 		PORTB ^= 0x01;
 		_delay_ms(300);
@@ -147,6 +147,7 @@ int task_led_red(void)
 
 int task_send_serial(void)
 {
+	//sei();
 	char *message = malloc(sizeof(char)*strlen(MESSAGE)+1);
 	//message[strlen(MESSAGE)+1] = 0;
 	while(1) {
@@ -163,12 +164,14 @@ struct process taskSerial = {"Serial", 0x0700, task_send_serial};
 struct process rgbMain = {"RGB", 0x0600, rgb_main};
 
 void init_task(struct process *p) {
+	int backUpSP = SP;
 	SP = p->stack_pointer;
 	int adresse=(int)p->fonction;
 	asm volatile("push %0" : : "r" (adresse & 0x00ff) );
 	asm volatile("push %0" : : "r" ((adresse & 0xff00)>>8) );
 	SAVE_CONTEXT();
 	p->stack_pointer=SP;
+	SP = backUpSP;
 }
 
 void init_scheduler() {
@@ -176,7 +179,7 @@ void init_scheduler() {
 	init_task(&taskSerial);
 	init_task(&rgbMain);
 	//SP = taskLed.stack_pointer;
-	current = &taskLed;
+	current = &taskSerial;
 }
 
 /* Fonction qui détermine la prochaine tâche a exécuter */
@@ -194,16 +197,20 @@ void scheduler()
 		current = &taskLed;
 	}
 	SP = current->stack_pointer;
+	//PORTB ^= 0x02;
+	//sei();
 	RESTORE_CONTEXT();
-	current->fonction(NULL);
+	//PORTB ^= 0x02;
+	//current->fonction(NULL);
 }
 
 ISR(TIMER1_COMPA_vect)
 {
-	sei();
-	PORTB ^= 0x01;
+	//sei();
+	//PORTB ^= 0x01;
 	//send_serial('a');
-	//scheduler();
+	//PORTB ^= 0x02;
+	scheduler();
 }
 
 
@@ -218,7 +225,7 @@ int main(void)
 	sei();
 	while(1)
 	{
-		send_serial('l');
+		//send_serial('l');
 	}
 
 	return 0;
